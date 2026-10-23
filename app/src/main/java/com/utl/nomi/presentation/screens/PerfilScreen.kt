@@ -19,10 +19,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.utl.nomi.R
+import com.utl.nomi.data.SesionUsuario
 import com.utl.nomi.presentation.components.BottomBarComponent
 
 @Composable
 fun PerfilScreen(
+    sesion: SesionUsuario,
+    onCerrarSesionClick: () -> Unit = {},
     onTabInicioClick: () -> Unit = {},
     onTabNominaClick: () -> Unit = {},
     onTabPerfilClick: () -> Unit = {}
@@ -79,7 +82,7 @@ fun PerfilScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Mariana Diaz Flores",
+                text = sesion.nombre,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -88,7 +91,7 @@ fun PerfilScreen(
             Spacer(modifier = Modifier.height(2.dp))
 
             Text(
-                text = "Operativo",
+                text = sesion.rol,
                 fontSize = 14.sp,
                 color = colorGrisOscuro
             )
@@ -113,19 +116,19 @@ fun PerfilScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Numero de empleado: 12345",
+                        text = "ID de usuario: ${sesion.id}",
                         fontSize = 13.sp,
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "RFC: DIAM850101ABC",
+                        text = "RFC: —",
                         fontSize = 13.sp,
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "NSS: 1234567890",
+                        text = "NSS: —",
                         fontSize = 13.sp,
                         color = Color.Black
                     )
@@ -152,17 +155,34 @@ fun PerfilScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Telefono: 477 111 2222",
+                        text = "Teléfono: —",
                         fontSize = 13.sp,
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Correo: mari@gmail.com",
+                        text = "Correo: —",
                         fontSize = 13.sp,
                         color = Color.Black
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedButton(
+                onClick = onCerrarSesionClick,
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Text(
+                    text = "CERRAR SESIÓN",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 

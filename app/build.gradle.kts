@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.utl.nomi"
-        minSdk = 34
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -64,4 +64,8 @@ dependencies {
     implementation("androidx.camera:camera-view:1.4.1")
 
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+
+    // Login: ViewModel con corrutinas y almacenamiento cifrado del token
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 }
