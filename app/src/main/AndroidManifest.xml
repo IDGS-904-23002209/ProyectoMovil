@@ -16,6 +16,7 @@
         android:roundIcon="@mipmap/ic_nomi_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Nomi"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"

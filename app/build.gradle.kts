@@ -65,6 +65,14 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
 
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // Convertidor Gson para Retrofit
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // (Opcional pero muy recomendado) OkHttp Logging Interceptor para ver errores de red en el Logcat
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
     // Login: ViewModel con corrutinas y almacenamiento cifrado del token
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")

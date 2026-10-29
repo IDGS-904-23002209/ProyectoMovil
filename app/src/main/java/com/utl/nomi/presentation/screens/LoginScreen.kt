@@ -29,7 +29,8 @@ fun LoginScreen(
     onLoginClick: (String, String) -> Unit,
     cargando: Boolean = false,
     error: String? = null,
-    onForgotPasswordClick: () -> Unit = {}
+    onForgotPasswordClick: () -> Unit = {},
+    onRegistrarEmpleadoClick: () -> Unit = {} // <-- Añadido aquí para recibir la acción de ir al registro
 ) {
     var numeroEmpleado by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -173,7 +174,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Mensaje de error del servidor (usuario o contraseña incorrectos, sin conexión, etc.)
+            // Mensaje de error del servidor
             if (error != null) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
@@ -186,17 +187,34 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Botón ¿Olvidaste tu contraseña?
-            TextButton(onClick = {
-                mostrarAyudaContrasena = true
-                onForgotPasswordClick()
-            }) {
-                Text(
-                    text = "¿Olvidaste tu contraseña?",
-                    color = colorVerde,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
-                )
+            // Fila con los botones de enlace secundario
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Botón para ir al Registro de Empleado
+                TextButton(onClick = onRegistrarEmpleadoClick) {
+                    Text(
+                        text = "Registrar empleado",
+                        color = colorAzul,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Botón ¿Olvidaste tu contraseña?
+                TextButton(onClick = {
+                    mostrarAyudaContrasena = true
+                    onForgotPasswordClick()
+                }) {
+                    Text(
+                        text = "¿Olvidaste tu contraseña?",
+                        color = colorVerde,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
 

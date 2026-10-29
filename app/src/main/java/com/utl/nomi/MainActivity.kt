@@ -17,17 +17,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.utl.nomi.presentation.auth.AuthViewModel
+import com.utl.nomi.presentation.auth.EmpleadoViewModel // <-- Asegúrate de importar tu ViewModel de empleado
 import com.utl.nomi.presentation.screens.InicioScreen
 import com.utl.nomi.presentation.screens.LoginScreen
 import com.utl.nomi.presentation.screens.NominaScreen
 import com.utl.nomi.presentation.screens.NotificacionesScreen
 import com.utl.nomi.presentation.screens.PerfilScreen
 import com.utl.nomi.presentation.screens.RegistroAsistenciaScreen
+import com.utl.nomi.presentation.screens.RegistroEmpleadoScreen
 import com.utl.nomi.ui.theme.NomiTheme
 
 class MainActivity : ComponentActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
+    private val empleadoViewModel: EmpleadoViewModel by viewModels() // <-- Declaramos el ViewModel de empleados
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,14 +51,30 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
 
-                            // Sin sesión: pantalla de login
-                            sesion == null -> LoginScreen(
-                                cargando = authViewModel.cargando,
-                                error = authViewModel.error,
-                                onLoginClick = { usuario, contrasena ->
-                                    authViewModel.iniciarSesion(usuario, contrasena)
+                            // Sin sesión: pantalla de login o registro
+                            sesion == null -> {
+                                when (pantallaActual) {
+                                    "registroEmpleado" -> RegistroEmpleadoScreen(
+                                        empleadoViewModel = empleadoViewModel, // <--- Pasamos el ViewModel correcto aquí
+                                        onCancelarClick = {
+                                            pantallaActual = "inicio" // Vuelve al login
+                                        },
+                                        onGuardarExitoso = {
+                                            pantallaActual = "inicio" // Vuelve al login al registrar con éxito
+                                        }
+                                    )
+                                    else -> LoginScreen(
+                                        cargando = authViewModel.cargando,
+                                        error = authViewModel.error,
+                                        onLoginClick = { usuario, contrasena ->
+                                            authViewModel.iniciarSesion(usuario, contrasena)
+                                        },
+                                        onRegistrarEmpleadoClick = {
+                                            pantallaActual = "registroEmpleado" // Salta a la pantalla de registro
+                                        }
+                                    )
                                 }
-                            )
+                            }
 
                             // Con sesión: el resto de la app
                             else -> {
