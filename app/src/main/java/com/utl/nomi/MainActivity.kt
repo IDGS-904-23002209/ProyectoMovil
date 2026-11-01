@@ -144,6 +144,16 @@ class MainActivity : ComponentActivity() {
 
                                     "perfil" -> PerfilScreen(
                                         sesion = sesion!!,
+                                        perfil = authViewModel.perfil,
+                                        cargando = authViewModel.cargandoPerfil,
+                                        error = authViewModel.errorPerfil,
+                                        onCargarPerfil = { authViewModel.cargarPerfil() },
+                                        cambiandoContrasena = authViewModel.cambiandoContrasena,
+                                        errorContrasena = authViewModel.errorContrasena,
+                                        onCambiarContrasena = { actual, nueva, confirmar ->
+                                            authViewModel.cambiarContrasena(actual, nueva, confirmar)
+                                        },
+                                        onLimpiarErrorContrasena = { authViewModel.limpiarErrorContrasena() },
                                         onCerrarSesionClick = {
                                             pantallaActual = "inicio"
                                             authViewModel.cerrarSesion()
