@@ -15,33 +15,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.utl.nomi.R
+import com.utl.nomi.data.model.NominaDto
+import com.utl.nomi.presentation.auth.nomina.NominaViewModel
 import com.utl.nomi.presentation.components.BottomBarComponent
 import com.utl.nomi.presentation.components.TopBarComponent
 
-data class ReciboNomina(
-    val fecha: String,
-    val monto: String
-)
-
 @Composable
 fun NominaScreen(
+    nominaViewModel: NominaViewModel = NominaViewModel(),
     onNotificacionesClick: () -> Unit = {},
     onTabInicioClick: () -> Unit = {},
     onTabNominaClick: () -> Unit = {},
     onTabPerfilClick: () -> Unit = {},
-    onDescargarPdfClick: (ReciboNomina) -> Unit = {}
+    onDescargarPdfClick: (NominaDto) -> Unit = {}
 ) {
     val colorGrisBlanco = Color(0xFFF8FAFC)
     val colorGrisOscuro = Color(0xFF787878)
 
-    val recibos = listOf(
-        ReciboNomina("15 May 2026", "$12,500.00 MXN"),
-        ReciboNomina("30 Abr 2026", "$12,500.00 MXN"),
-        ReciboNomina("15 Abr 2026", "$12,500.00 MXN"),
-        ReciboNomina("31 Mar 2026", "$12,500.00 MXN"),
-        ReciboNomina("15 Mar 2026", "$12,500.00 MXN")
-    )
+    // Cargar los recibos reales del periodo al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        nominaViewModel.cargarNominaPeriodo(periodoId = 1) // Ajusta el ID del periodo según tu lógica
+    }
 
     Box(
         modifier = Modifier
@@ -74,6 +68,7 @@ fun NominaScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Tarjeta de filtro idéntica a tu maqueta
             OutlinedCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -113,12 +108,39 @@ fun NominaScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            recibos.forEach { recibo ->
-                ItemReciboNomina(
-                    recibo = recibo,
-                    onDescargarClick = { onDescargarPdfClick(recibo) }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+            // Manejo de estados de carga y renderizado idéntico
+            when {
+                nominaViewModel.cargando -> {
+                    CircularProgressIndicator(
+                        color = Color(0xFF0F766E),
+                        modifier = Modifier.padding(top = 40.dp)
+                    )
+                }
+                nominaViewModel.error != null -> {
+                    Text(
+                        text = nominaViewModel.error!!,
+                        color = Color.Red,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 20.dp)
+                    )
+                }
+                nominaViewModel.recibos.isEmpty() -> {
+                    Text(
+                        text = "No hay recibos de nómina disponibles.",
+                        color = colorGrisOscuro,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 20.dp)
+                    )
+                }
+                else -> {
+                    nominaViewModel.recibos.forEach { recibo ->
+                        ItemReciboNominaReal(
+                            recibo = recibo,
+                            onDescargarClick = { onDescargarPdfClick(recibo) }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
             }
         }
 
@@ -136,10 +158,11 @@ fun NominaScreen(
 }
 
 @Composable
-fun ItemReciboNomina(
-    recibo: ReciboNomina,
+fun ItemReciboNominaReal(
+    recibo: NominaDto,
     onDescargarClick: () -> Unit
 ) {
+    // Mantiene el diseño exacto de tu Card original pero mostrando el sueldo neto y datos del DTO
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -154,13 +177,13 @@ fun ItemReciboNomina(
         ) {
             Column {
                 Text(
-                    text = recibo.fecha,
+                    text = "Periodo / Empleado #${recibo.empleadoId}",
                     fontSize = 13.sp,
                     color = Color.DarkGray
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = recibo.monto,
+                    text = "$${String.format("%,.2f", recibo.sueldoNeto)} MXN",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black

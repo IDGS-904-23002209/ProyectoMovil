@@ -15,11 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.utl.nomi.data.model.NotificacionDto
+import com.utl.nomi.presentation.auth.notificaciones.NotificacionesViewModel
 import com.utl.nomi.presentation.components.BottomBarComponent
 import com.utl.nomi.presentation.components.TopBarComponent
 
 @Composable
 fun NotificacionesScreen(
+    notificacionesViewModel: NotificacionesViewModel = NotificacionesViewModel(),
     onTabInicioClick: () -> Unit = {},
     onTabNominaClick: () -> Unit = {},
     onTabPerfilClick: () -> Unit = {}
@@ -58,6 +61,7 @@ fun NotificacionesScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Sección: Hoy
             Text(
                 text = "Hoy",
                 fontSize = 15.sp,
@@ -70,22 +74,22 @@ fun NotificacionesScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ItemNotificacion(
-                titulo = "Aprovacion Solicitud",
-                subtitulo = "El recibo de Nomina ya esta listo para su descarga",
-                iconRes = android.R.drawable.checkbox_on_background
-            )
+            notificacionesViewModel.notificacionesHoy.forEach { notif ->
+                ItemNotificacion(
+                    titulo = notif.titulo,
+                    subtitulo = notif.mensaje,
+                    iconRes = when {
+                        notif.titulo.contains("Aprobacion", true) -> android.R.drawable.checkbox_on_background
+                        notif.titulo.contains("Recibo", true) -> android.R.drawable.ic_menu_agenda
+                        else -> android.R.drawable.ic_menu_info_details
+                    }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ItemNotificacion(
-                titulo = "Recibo Disponible",
-                subtitulo = "Tu recibo con goce ya ha sido aprobado",
-                iconRes = android.R.drawable.ic_menu_agenda
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
+            // Sección: Ayer
             Text(
                 text = "Ayer",
                 fontSize = 15.sp,
@@ -98,11 +102,14 @@ fun NotificacionesScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ItemNotificacion(
-                titulo = "Asistencia",
-                subtitulo = "Hiciste el registro de asistencia fuera del tiempo establecido",
-                iconRes = android.R.drawable.ic_dialog_alert
-            )
+            notificacionesViewModel.notificacionesAyer.forEach { notif ->
+                ItemNotificacion(
+                    titulo = notif.titulo,
+                    subtitulo = notif.mensaje,
+                    iconRes = android.R.drawable.ic_dialog_alert
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
 
         Box(
