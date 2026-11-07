@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.utl.nomi.data.remote.AsistenciaApi
 import com.utl.nomi.presentation.auth.AuthViewModel
 import com.utl.nomi.presentation.auth.EmpleadoViewModel // <-- Asegúrate de importar tu ViewModel de empleado
 import com.utl.nomi.presentation.screens.InicioScreen
@@ -26,12 +27,20 @@ import com.utl.nomi.presentation.screens.PerfilScreen
 import com.utl.nomi.presentation.screens.RegistroAsistenciaScreen
 import com.utl.nomi.presentation.screens.RegistroEmpleadoScreen
 import com.utl.nomi.ui.theme.NomiTheme
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
-    private val empleadoViewModel: EmpleadoViewModel by viewModels() // <-- Declaramos el ViewModel de empleados
-
+    private val empleadoViewModel: EmpleadoViewModel by viewModels()
+    private val asistenciaApi: AsistenciaApi by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://localhost:7219/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AsistenciaApi::class.java)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -43,7 +52,6 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
                         when {
-                            // Al abrir la app: se revisa si hay una sesión guardada
                             authViewModel.verificando -> Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
@@ -51,16 +59,15 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
 
-                            // Sin sesión: pantalla de login o registro
                             sesion == null -> {
                                 when (pantallaActual) {
                                     "registroEmpleado" -> RegistroEmpleadoScreen(
-                                        empleadoViewModel = empleadoViewModel, // <--- Pasamos el ViewModel correcto aquí
+                                        empleadoViewModel = empleadoViewModel,
                                         onCancelarClick = {
-                                            pantallaActual = "inicio" // Vuelve al login
+                                            pantallaActual = "inicio"
                                         },
                                         onGuardarExitoso = {
-                                            pantallaActual = "inicio" // Vuelve al login al registrar con éxito
+                                            pantallaActual = "inicio"
                                         }
                                     )
                                     else -> LoginScreen(
@@ -70,13 +77,11 @@ class MainActivity : ComponentActivity() {
                                             authViewModel.iniciarSesion(usuario, contrasena)
                                         },
                                         onRegistrarEmpleadoClick = {
-                                            pantallaActual = "registroEmpleado" // Salta a la pantalla de registro
+                                            pantallaActual = "registroEmpleado"
                                         }
                                     )
                                 }
                             }
-
-                            // Con sesión: el resto de la app
                             else -> {
                                 when (pantallaActual) {
                                     "inicio" -> InicioScreen(
@@ -98,6 +103,7 @@ class MainActivity : ComponentActivity() {
                                     )
 
                                     "registroAsistencia" -> RegistroAsistenciaScreen(
+                                        api = asistenciaApi,
                                         onCancelarClick = {
                                             pantallaActual = "inicio"
                                         },
