@@ -1,6 +1,6 @@
 package com.utl.nomi.data.remote
 
-import com.util.nomi.data.model.AsistenciaDto
+import com.utl.nomi.data.model.AsistenciaDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST

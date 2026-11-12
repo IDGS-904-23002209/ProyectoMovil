@@ -11,37 +11,44 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import com.utl.nomi.data.remote.AsistenciaApi
-import com.util.nomi.presentation.nomina.AsistenciaViewModelFactory
 import com.utl.nomi.presentation.auth.nomina.AsistenciaViewModel
+import com.utl.nomi.presentation.auth.nomina.AsistenciaViewModelFactory
+import com.utl.nomi.presentation.auth.nomina.EstadoRegistro
 import com.utl.nomi.presentation.components.BottomBarComponent
+import com.utl.nomi.presentation.components.TopBarComponent
+import com.utl.nomi.ui.theme.Exito
 import java.util.concurrent.Executors
 
+// Pantalla para registrar asistencia escaneando el QR de la planta.
+// empleadoId viene del perfil del usuario con sesión (antes estaba fijo en 1).
+// Si todavía no se cargó el perfil, se pide con onCargarPerfil.
+// El diseño completo del Figma (elegir GPS o QR y pantalla de éxito) llega en la Fase 4.
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RegistroAsistenciaScreen(
     api: AsistenciaApi,
+    empleadoId: Int?,
+    cargandoPerfil: Boolean = false,
+    onCargarPerfil: () -> Unit = {},
     onCancelarClick: () -> Unit = {},
     onNotificacionesClick: () -> Unit = {},
     onTabInicioClick: () -> Unit = {},
@@ -51,89 +58,71 @@ fun RegistroAsistenciaScreen(
     val viewModel: AsistenciaViewModel = viewModel(
         factory = AsistenciaViewModelFactory(api)
     )
-
-    val colorVerde = Color(0xFF10B981)
-    val colorGrisBlanco = Color(0xFFF8FAFC)
-    val colorRojo = Color(0xFFEF4444)
     val context = LocalContext.current
 
-    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-    val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    // Pide cámara y ubicación juntos (antes eran dos solicitudes seguidas y una tapaba a la otra)
+    val permisos = rememberMultiplePermissionsState(
+        listOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION)
+    )
 
     val statusMessage by viewModel.statusMessage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-
-    var qrEscaneado by remember { mutableStateOf(false) }
+    val estado by viewModel.estado.collectAsState()
 
     LaunchedEffect(Unit) {
-        if (!cameraPermissionState.status.isGranted) cameraPermissionState.launchPermissionRequest()
-        if (!locationPermissionState.status.isGranted) locationPermissionState.launchPermissionRequest()
+        if (!permisos.allPermissionsGranted) permisos.launchMultiplePermissionRequest()
+        if (empleadoId == null) onCargarPerfil()
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(colorGrisBlanco)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(bottom = 75.dp),
+            modifier = Modifier.fillMaxSize().padding(bottom = 90.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Nomi",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorVerde
-                )
-
-                Box(modifier = Modifier.size(40.dp)) {
-                    IconButton(onClick = onNotificacionesClick, modifier = Modifier.align(Alignment.Center)) {
-                        Icon(
-                            painter = painterResource(id = android.R.drawable.ic_popup_reminder),
-                            contentDescription = "Notificaciones",
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    Box(modifier = Modifier.size(10.dp).background(colorRojo, RoundedCornerShape(5.dp)).align(Alignment.TopEnd))
-                }
+            Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                TopBarComponent(onNotificacionesClick = onNotificacionesClick)
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Registrar asistencia",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            )
+            Text(
+                text = "Apunta la cámara al código QR de la planta.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Cámara
             Box(
-                modifier = Modifier.fillMaxWidth().weight(1f).background(Color.Black),
+                modifier = Modifier.fillMaxWidth().weight(1f).clipToBounds().background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
-                if (cameraPermissionState.status.isGranted && locationPermissionState.status.isGranted) {
-                    if (!qrEscaneado) {
-                        CameraPreviewView(
-                            modifier = Modifier.fillMaxSize(),
-                            onQrCodeScanned = { qrCode ->
-                                qrEscaneado = true
-                                val empleadoId = 1 // TODO: ID real logueado
-                                viewModel.validarYRegistrar(context, empleadoId, qrCode)
-                            }
-                        )
-                    } else {
-                        Text(
-                            text = "QR detectado, procesando...",
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                    }
-                } else {
-                    Text(
-                        text = "Se requieren permisos de cámara y ubicación",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(16.dp)
+                when {
+                    !permisos.allPermissionsGranted -> TextoSobreCamara(
+                        "Se necesitan permisos de cámara y ubicación para registrar tu asistencia."
+                    )
+                    empleadoId == null -> TextoSobreCamara(
+                        if (cargandoPerfil) "Cargando tus datos..."
+                        else "Tu usuario no tiene un empleado asociado. Contacta a RH."
+                    )
+                    estado == EstadoRegistro.ESPERANDO -> CameraPreviewView(
+                        modifier = Modifier.fillMaxSize(),
+                        onQrCodeScanned = { qrCode ->
+                            viewModel.validarYRegistrar(context, empleadoId, qrCode)
+                        }
+                    )
+                    else -> TextoSobreCamara(
+                        if (estado == EstadoRegistro.PROCESANDO) "QR detectado, procesando..." else "QR leído"
                     )
                 }
             }
@@ -145,31 +134,45 @@ fun RegistroAsistenciaScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(color = colorVerde)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 Text(
                     text = statusMessage ?: "Escanea el QR para registrar tu asistencia",
-                    fontSize = 13.sp,
-                    color = when {
-                        statusMessage?.startsWith("❌") == true -> colorRojo
-                        statusMessage?.startsWith("✅") == true -> colorVerde
-                        else -> Color.Black
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = when (estado) {
+                        EstadoRegistro.ERROR -> MaterialTheme.colorScheme.error
+                        EstadoRegistro.EXITO -> Exito
+                        else -> MaterialTheme.colorScheme.onBackground
                     },
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
+                // Si falló, deja volver a escanear sin salir de la pantalla
+                if (estado == EstadoRegistro.ERROR) {
+                    Button(
+                        onClick = { viewModel.reiniciar() },
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) {
+                        Text("Intentar de nuevo", style = MaterialTheme.typography.labelLarge)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                OutlinedButton(
                     onClick = onCancelarClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = colorVerde),
-                    shape = RoundedCornerShape(24.dp),
                     enabled = !isLoading,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
-                    Text("Cancelar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        if (estado == EstadoRegistro.EXITO) "Volver al inicio" else "Cancelar",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -184,6 +187,17 @@ fun RegistroAsistenciaScreen(
             )
         }
     }
+}
+
+@Composable
+private fun TextoSobreCamara(texto: String) {
+    Text(
+        text = texto,
+        color = Color.White.copy(alpha = 0.85f),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(24.dp)
+    )
 }
 
 // --- CÁMARA CON ML KIT ---
@@ -205,7 +219,13 @@ fun CameraPreviewView(
 
     AndroidView(
         factory = { ctx ->
-            val previewView = PreviewView(ctx)
+            // COMPATIBLE usa TextureView: respeta los bordes de la caja.
+            // Con el modo por defecto (SurfaceView) la cámara se dibujaba
+            // encima del título y del mensaje de abajo.
+            val previewView = PreviewView(ctx).apply {
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                scaleType = PreviewView.ScaleType.FILL_CENTER
+            }
             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
             cameraProviderFuture.addListener({

@@ -1,4 +1,4 @@
-package com.util.nomi.data.model
+package com.utl.nomi.data.model
 
 import com.google.gson.annotations.SerializedName
 

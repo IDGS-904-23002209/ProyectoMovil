@@ -49,6 +49,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    // Iconos de Material (los mismos estilos del Figma). La versión la pone el BOM de Compose.
+    implementation("androidx.compose.material:material-icons-extended")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -57,7 +59,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("com.google.android.gms:play-services-location:21.0.1")
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     // CameraX

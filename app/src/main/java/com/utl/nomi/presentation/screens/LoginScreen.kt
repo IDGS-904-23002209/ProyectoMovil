@@ -29,8 +29,7 @@ fun LoginScreen(
     onLoginClick: (String, String) -> Unit,
     cargando: Boolean = false,
     error: String? = null,
-    onForgotPasswordClick: () -> Unit = {},
-    onRegistrarEmpleadoClick: () -> Unit = {} // <-- Añadido aquí para recibir la acción de ir al registro
+    onForgotPasswordClick: () -> Unit = {}
 ) {
     var numeroEmpleado by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -193,15 +192,10 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Botón para ir al Registro de Empleado
-                TextButton(onClick = onRegistrarEmpleadoClick) {
-                    Text(
-                        text = "Registrar empleado",
-                        color = colorAzul,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                // El alta de empleados se hace en la web (RRHH o ADMIN).
+                // Antes había aquí un botón "Registrar empleado" sin sesión,
+                // y cualquiera podía crearse una cuenta con cualquier rol.
+                Spacer(modifier = Modifier.width(1.dp))
 
                 // Botón ¿Olvidaste tu contraseña?
                 TextButton(onClick = {

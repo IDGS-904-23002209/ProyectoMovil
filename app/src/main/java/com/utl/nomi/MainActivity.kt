@@ -16,33 +16,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.utl.nomi.data.remote.AsistenciaApi
+import com.utl.nomi.data.remote.RetrofitClient
 import com.utl.nomi.presentation.auth.AuthViewModel
-import com.utl.nomi.presentation.auth.EmpleadoViewModel // <-- Asegúrate de importar tu ViewModel de empleado
 import com.utl.nomi.presentation.screens.InicioScreen
 import com.utl.nomi.presentation.screens.LoginScreen
 import com.utl.nomi.presentation.screens.NominaScreen
 import com.utl.nomi.presentation.screens.NotificacionesScreen
 import com.utl.nomi.presentation.screens.PerfilScreen
 import com.utl.nomi.presentation.screens.RegistroAsistenciaScreen
-import com.utl.nomi.presentation.screens.RegistroEmpleadoScreen
 import com.utl.nomi.ui.theme.NomiTheme
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
-    private val empleadoViewModel: EmpleadoViewModel by viewModels()
-    private val asistenciaApi: AsistenciaApi by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://localhost:7219/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(AsistenciaApi::class.java)
-    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Retrofit lee el token de aquí para mandarlo en cada petición
+        RetrofitClient.iniciar(this)
         enableEdgeToEdge()
         setContent {
             NomiTheme {
@@ -59,29 +50,15 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
 
-                            sesion == null -> {
-                                when (pantallaActual) {
-                                    "registroEmpleado" -> RegistroEmpleadoScreen(
-                                        empleadoViewModel = empleadoViewModel,
-                                        onCancelarClick = {
-                                            pantallaActual = "inicio"
-                                        },
-                                        onGuardarExitoso = {
-                                            pantallaActual = "inicio"
-                                        }
-                                    )
-                                    else -> LoginScreen(
-                                        cargando = authViewModel.cargando,
-                                        error = authViewModel.error,
-                                        onLoginClick = { usuario, contrasena ->
-                                            authViewModel.iniciarSesion(usuario, contrasena)
-                                        },
-                                        onRegistrarEmpleadoClick = {
-                                            pantallaActual = "registroEmpleado"
-                                        }
-                                    )
+                            // Sin sesión solo existe el login. El registro de empleados
+                            // se quitó de aquí: se hace en la web con sesión de RRHH o ADMIN.
+                            sesion == null -> LoginScreen(
+                                cargando = authViewModel.cargando,
+                                error = authViewModel.error,
+                                onLoginClick = { usuario, contrasena ->
+                                    authViewModel.iniciarSesion(usuario, contrasena)
                                 }
-                            }
+                            )
                             else -> {
                                 when (pantallaActual) {
                                     "inicio" -> InicioScreen(
@@ -103,7 +80,12 @@ class MainActivity : ComponentActivity() {
                                     )
 
                                     "registroAsistencia" -> RegistroAsistenciaScreen(
-                                        api = asistenciaApi,
+                                        api = RetrofitClient.asistenciaApi,
+                                        // El empleado sale del perfil del usuario con sesión
+                                        empleadoId = authViewModel.perfil?.empleadoId,
+                                        cargandoPerfil = authViewModel.cargandoPerfil ||
+                                                (authViewModel.perfil == null && authViewModel.errorPerfil == null),
+                                        onCargarPerfil = { authViewModel.cargarPerfil() },
                                         onCancelarClick = {
                                             pantallaActual = "inicio"
                                         },

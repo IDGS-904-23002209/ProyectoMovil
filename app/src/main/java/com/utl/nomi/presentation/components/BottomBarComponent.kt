@@ -1,17 +1,36 @@
 package com.utl.nomi.presentation.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.ReceiptLong
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.utl.nomi.R
 
+// Una pestaña de la barra inferior
+private data class Pestana(
+    val id: String,
+    val texto: String,
+    val iconoActivo: ImageVector,
+    val iconoInactivo: ImageVector,
+    val alPulsar: () -> Unit
+)
+
+// Barra inferior de Material 3 con icono y nombre en cada pestaña.
+// Los parámetros son los mismos de antes, así que las pantallas no cambian.
+// currentTab: "inicio", "nomina" o "perfil".
 @Composable
 fun BottomBarComponent(
     currentTab: String,
@@ -19,81 +38,41 @@ fun BottomBarComponent(
     onTabNominaClick: () -> Unit,
     onTabPerfilClick: () -> Unit
 ) {
-    val colorVerde = Color(0xFF10B981)
-    val colorAzul = Color(0xFF1E3A8A)
+    val pestanas = listOf(
+        Pestana("inicio", "Inicio", Icons.Filled.Home, Icons.Outlined.Home, onTabInicioClick),
+        Pestana("nomina", "Recibos", Icons.Filled.ReceiptLong, Icons.Outlined.ReceiptLong, onTabNominaClick),
+        Pestana("perfil", "Perfil", Icons.Filled.Person, Icons.Outlined.Person, onTabPerfilClick),
+    )
 
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(75.dp),
-        color = Color.White,
-        shadowElevation = 8.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Column {
+        // Línea fina arriba de la barra, como en el Figma
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp
         ) {
-            // Pestaña Inicio
-            IconButton(onClick = onTabInicioClick) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.icono),
-                        contentDescription = "Inicio",
-                        modifier = Modifier.size(26.dp)
-                    )
-                    if (currentTab == "inicio") {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .width(28.dp)
-                                .height(2.dp)
-                                .background(colorVerde)
+            pestanas.forEach { pestana ->
+                val activa = currentTab == pestana.id
+                NavigationBarItem(
+                    selected = activa,
+                    // Si ya está en esa pestaña no vuelve a navegar
+                    onClick = { if (!activa) pestana.alPulsar() },
+                    icon = {
+                        Icon(
+                            imageVector = if (activa) pestana.iconoActivo else pestana.iconoInactivo,
+                            contentDescription = pestana.texto
                         )
-                    }
-                }
-            }
-
-            // Pestaña Nómina
-            IconButton(onClick = onTabNominaClick) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.recibo),
-                        contentDescription = "Nómina",
-                        modifier = Modifier.size(26.dp)
+                    },
+                    label = { Text(pestana.texto, style = MaterialTheme.typography.labelMedium) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (currentTab == "nomina") {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .width(26.dp)
-                                .height(2.dp)
-                                .background(colorAzul)
-                        )
-                    }
-                }
-            }
-
-            // Pestaña Perfil
-            IconButton(onClick = onTabPerfilClick) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.perfil),
-                        contentDescription = "Perfil",
-                        modifier = Modifier.size(26.dp)
-                    )
-                    if (currentTab == "perfil") {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .width(26.dp)
-                                .height(2.dp)
-                                .background(colorAzul)
-                        )
-                    }
-                }
+                )
             }
         }
     }

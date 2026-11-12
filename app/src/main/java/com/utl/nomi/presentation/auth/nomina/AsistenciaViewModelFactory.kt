@@ -1,4 +1,4 @@
-package com.util.nomi.presentation.nomina
+package com.utl.nomi.presentation.auth.nomina
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
