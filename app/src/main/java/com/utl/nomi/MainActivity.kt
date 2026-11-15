@@ -20,7 +20,7 @@ import com.utl.nomi.data.remote.RetrofitClient
 import com.utl.nomi.presentation.auth.AuthViewModel
 import com.utl.nomi.presentation.screens.InicioScreen
 import com.utl.nomi.presentation.screens.LoginScreen
-import com.utl.nomi.presentation.screens.NominaScreen
+import com.utl.nomi.presentation.screens.RecibosScreen
 import com.utl.nomi.presentation.screens.NotificacionesScreen
 import com.utl.nomi.presentation.screens.PerfilScreen
 import com.utl.nomi.presentation.screens.RegistroAsistenciaScreen
@@ -38,6 +38,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             NomiTheme {
                 var pantallaActual by remember { mutableStateOf("inicio") }
+                // Datos que Inicio le pasa al flujo de registro
+                var registroEsSalida by remember { mutableStateOf(false) }
+                var registroSede by remember { mutableStateOf<String?>(null) }
                 val sesion = authViewModel.sesion
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -62,8 +65,14 @@ class MainActivity : ComponentActivity() {
                             else -> {
                                 when (pantallaActual) {
                                     "inicio" -> InicioScreen(
-                                        onRegistrarEntradaClick = {
+                                        onRegistrarClick = { esSalida, sede ->
+                                            registroEsSalida = esSalida
+                                            registroSede = sede
                                             pantallaActual = "registroAsistencia"
+                                        },
+                                        onSesionExpirada = {
+                                            pantallaActual = "inicio"
+                                            authViewModel.cerrarSesion()
                                         },
                                         onNotificacionesClick = {
                                             pantallaActual = "notificaciones"
@@ -79,28 +88,12 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
 
+                                    // Flujo de registro (pantalla completa, sin barra inferior).
+                                    // El servidor saca al empleado del token: ya no se manda su id.
                                     "registroAsistencia" -> RegistroAsistenciaScreen(
-                                        api = RetrofitClient.asistenciaApi,
-                                        // El empleado sale del perfil del usuario con sesión
-                                        empleadoId = authViewModel.perfil?.empleadoId,
-                                        cargandoPerfil = authViewModel.cargandoPerfil ||
-                                                (authViewModel.perfil == null && authViewModel.errorPerfil == null),
-                                        onCargarPerfil = { authViewModel.cargarPerfil() },
-                                        onCancelarClick = {
-                                            pantallaActual = "inicio"
-                                        },
-                                        onNotificacionesClick = {
-                                            pantallaActual = "notificaciones"
-                                        },
-                                        onTabInicioClick = {
-                                            pantallaActual = "inicio"
-                                        },
-                                        onTabNominaClick = {
-                                            pantallaActual = "nomina"
-                                        },
-                                        onTabPerfilClick = {
-                                            pantallaActual = "perfil"
-                                        }
+                                        esSalida = registroEsSalida,
+                                        sede = registroSede,
+                                        onVolver = { pantallaActual = "inicio" }
                                     )
 
                                     "notificaciones" -> NotificacionesScreen(
@@ -115,7 +108,8 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
 
-                                    "nomina" -> NominaScreen(
+                                    // Mis recibos (solo los del usuario con sesión)
+                                    "nomina" -> RecibosScreen(
                                         onNotificacionesClick = {
                                             pantallaActual = "notificaciones"
                                         },
@@ -145,6 +139,9 @@ class MainActivity : ComponentActivity() {
                                         onCerrarSesionClick = {
                                             pantallaActual = "inicio"
                                             authViewModel.cerrarSesion()
+                                        },
+                                        onNotificacionesClick = {
+                                            pantallaActual = "notificaciones"
                                         },
                                         onTabInicioClick = {
                                             pantallaActual = "inicio"

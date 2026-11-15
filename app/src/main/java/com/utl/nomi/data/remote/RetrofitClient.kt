@@ -54,7 +54,6 @@ object RetrofitClient {
 
     val apiService: ApiService by lazy { retrofit.create(ApiService::class.java) }
 
-    // Antes se creaba aparte en MainActivity con https://localhost:7219,
-    // que no se alcanza desde el emulador.
-    val asistenciaApi: AsistenciaApi by lazy { retrofit.create(AsistenciaApi::class.java) }
+    // Endpoints de la app móvil: inicio, registro de asistencia y recibos
+    val movilApi: MovilApi by lazy { retrofit.create(MovilApi::class.java) }
 }

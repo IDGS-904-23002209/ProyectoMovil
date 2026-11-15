@@ -1,25 +1,34 @@
 package com.utl.nomi.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.utl.nomi.data.PerfilUsuario
 import com.utl.nomi.data.SesionUsuario
 import com.utl.nomi.presentation.components.BottomBarComponent
+import com.utl.nomi.presentation.components.TarjetaNomi
+import com.utl.nomi.presentation.components.TopBarComponent
+import com.utl.nomi.presentation.components.fechaCorta
+import com.utl.nomi.presentation.components.iniciales
 
 // Nombre del rol como se muestra al usuario
 private fun etiquetaRol(rol: String): String = when (rol) {
@@ -29,23 +38,12 @@ private fun etiquetaRol(rol: String): String = when (rol) {
     else -> rol
 }
 
-// "2024-03-15" -> "15/03/2024"
-private fun formatoFecha(fecha: String?): String {
-    if (fecha.isNullOrBlank()) return "—"
-    val partes = fecha.split("-")
-    return if (partes.size == 3) "${partes[2]}/${partes[1]}/${partes[0]}" else fecha
-}
-
-// "Ana Martínez Ruiz" -> "AM"
-private fun iniciales(nombre: String): String {
-    val partes = nombre.trim().split(" ").filter { it.isNotBlank() }
-    if (partes.isEmpty()) return "?"
-    val segunda = if (partes.size > 1) partes[1].first().toString() else ""
-    return (partes[0].first().toString() + segunda).uppercase()
-}
-
 private fun valorOGuion(valor: String?): String = if (valor.isNullOrBlank()) "—" else valor
 
+// Perfil del Figma: avatar con iniciales, nombre, número de empleado y rol,
+// tarjetas con los datos (etiqueta a la izquierda, valor a la derecha)
+// y las acciones de cambiar contraseña y cerrar sesión.
+// Los datos vienen de GET api/auth/perfil (AuthViewModel), igual que antes.
 @Composable
 fun PerfilScreen(
     sesion: SesionUsuario,
@@ -58,198 +56,124 @@ fun PerfilScreen(
     onCambiarContrasena: (String, String, String) -> Unit = { _, _, _ -> },
     onLimpiarErrorContrasena: () -> Unit = {},
     onCerrarSesionClick: () -> Unit = {},
+    onNotificacionesClick: () -> Unit = {},
     onTabInicioClick: () -> Unit = {},
     onTabNominaClick: () -> Unit = {},
     onTabPerfilClick: () -> Unit = {}
 ) {
-    val colorGrisBlanco = Color(0xFFF8FAFC)
-    val colorGrisOscuro = Color(0xFF787878)
-    val colorAzul = Color(0xFF1E3A8A)
-    val colorRojo = Color(0xFFEF4444)
-
     // Al abrir la pestaña Perfil se piden los datos al servidor
-    LaunchedEffect(Unit) {
-        onCargarPerfil()
-    }
+    LaunchedEffect(Unit) { onCargarPerfil() }
 
     val nombre = perfil?.nombreCompleto ?: sesion.nombre
-    // Rol como subtítulo; si hay perfil, también el departamento
-    val departamento = perfil?.departamento
-    val subtitulo = if (departamento != null)
-        "${etiquetaRol(sesion.rol)} · $departamento"
-    else
+    val subtitulo = listOfNotNull(
+        perfil?.empleadoId?.let { "#$it" },
         etiquetaRol(sesion.rol)
+    ).joinToString(" · ")
 
     var mostrarDialogo by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorGrisBlanco)
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 90.dp),
+                .padding(horizontal = 20.dp)
+                .padding(top = 12.dp, bottom = 100.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            TopBarComponent(onNotificacionesClick = onNotificacionesClick)
             Spacer(modifier = Modifier.height(20.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(45.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "PERFIL",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "Perfil",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Avatar con las iniciales del nombre
             Box(
                 modifier = Modifier
-                    .size(90.dp)
+                    .size(80.dp)
                     .clip(CircleShape)
-                    .background(colorAzul),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = iniciales(nombre),
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    iniciales(nombre),
+                    fontSize = 26.sp,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = nombre,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            )
-
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(nombre, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = subtitulo,
-                fontSize = 14.sp,
-                color = colorGrisOscuro
-            )
+            Text(subtitulo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Estado de la carga: indicador, error con botón para reintentar
+            // Carga y error
             if (cargando && perfil == null) {
-                CircularProgressIndicator(
-                    color = colorAzul,
-                    strokeWidth = 3.dp,
-                    modifier = Modifier.size(28.dp)
-                )
+                CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(28.dp))
                 Spacer(modifier = Modifier.height(20.dp))
             }
-
             if (error != null) {
-                Text(
-                    text = error,
-                    color = colorRojo,
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Center
-                )
-                TextButton(onClick = onCargarPerfil) {
-                    Text("Reintentar", color = colorAzul, fontWeight = FontWeight.Medium)
-                }
+                Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                TextButton(onClick = onCargarPerfil) { Text("Reintentar") }
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             if (perfil != null) {
                 if (perfil.empleadoId == null) {
                     Text(
-                        text = "Esta cuenta no tiene un empleado asociado.",
-                        fontSize = 12.sp,
-                        color = colorGrisOscuro,
+                        "Esta cuenta no tiene un empleado asociado.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
                 TarjetaDatos(
-                    titulo = "DATOS PERSONALES",
+                    titulo = "Información laboral",
                     filas = listOf(
-                        "Número de empleado" to (perfil.empleadoId?.toString() ?: "—"),
+                        "Departamento" to valorOGuion(perfil.departamento),
+                        "Turno" to valorOGuion(perfil.turno),
+                        "Planta" to valorOGuion(perfil.sede),
+                        "Empresa" to valorOGuion(perfil.empresa),
+                        "Fecha de ingreso" to fechaCorta(perfil.fechaIngreso)
+                    )
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                TarjetaDatos(
+                    titulo = "Datos personales",
+                    filas = listOf(
                         "Usuario" to perfil.nombreUsuario,
                         "RFC" to valorOGuion(perfil.rfc),
                         "CURP" to valorOGuion(perfil.curp),
                         "NSS" to valorOGuion(perfil.nss)
                     )
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
+                Spacer(modifier = Modifier.height(12.dp))
                 TarjetaDatos(
-                    titulo = "TRABAJO",
-                    filas = listOf(
-                        "Empresa" to valorOGuion(perfil.empresa),
-                        "Departamento" to valorOGuion(perfil.departamento),
-                        "Turno" to valorOGuion(perfil.turno),
-                        "Sede" to valorOGuion(perfil.sede),
-                        "Fecha de ingreso" to formatoFecha(perfil.fechaIngreso)
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                TarjetaDatos(
-                    titulo = "CONTACTO",
+                    titulo = "Contacto",
                     filas = listOf(
                         "Teléfono" to valorOGuion(perfil.telefono),
                         "Correo" to valorOGuion(perfil.correo)
                     )
                 )
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            OutlinedButton(
-                onClick = { mostrarDialogo = true },
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = colorAzul),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Text(
-                    text = "CAMBIAR CONTRASEÑA",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = onCerrarSesionClick,
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = colorRojo),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Text(
-                    text = "CERRAR SESIÓN",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            // Acciones
+            TarjetaNomi(modifier = Modifier.fillMaxWidth(), relleno = 0.dp) {
+                FilaAccion(Icons.Outlined.Lock, "Cambiar contraseña", MaterialTheme.colorScheme.onSurface) {
+                    mostrarDialogo = true
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(horizontal = 16.dp))
+                FilaAccion(Icons.AutoMirrored.Outlined.Logout, "Cerrar sesión", MaterialTheme.colorScheme.error, onCerrarSesionClick)
             }
         }
 
@@ -265,9 +189,7 @@ fun PerfilScreen(
             )
         }
 
-        Box(
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
+        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
             BottomBarComponent(
                 currentTab = "perfil",
                 onTabInicioClick = onTabInicioClick,
@@ -278,35 +200,48 @@ fun PerfilScreen(
     }
 }
 
-// Tarjeta con un título y una lista de "etiqueta: valor"
+// Tarjeta con título y filas "etiqueta ........ valor", separadas por líneas
 @Composable
 private fun TarjetaDatos(titulo: String, filas: List<Pair<String, String>>) {
-    OutlinedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = titulo,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            filas.forEachIndexed { indice, fila ->
-                if (indice > 0) Spacer(modifier = Modifier.height(4.dp))
+    TarjetaNomi(modifier = Modifier.fillMaxWidth()) {
+        Text(titulo, style = MaterialTheme.typography.titleSmall)
+        Spacer(modifier = Modifier.height(6.dp))
+        filas.forEach { (etiqueta, valor) ->
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 11.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(etiqueta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "${fila.first}: ${fila.second}",
-                    fontSize = 13.sp,
-                    color = Color.Black
+                    valor,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.End,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
+    }
+}
+
+// Fila tocable con icono, texto y flecha
+@Composable
+private fun FilaAccion(icono: ImageVector, texto: String, color: Color, alPulsar: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = alPulsar)
+            .padding(horizontal = 16.dp, vertical = 15.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icono, contentDescription = null, tint = color)
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(texto, style = MaterialTheme.typography.bodyLarge, color = color, modifier = Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -325,7 +260,7 @@ private fun DialogoContrasena(
 
     AlertDialog(
         onDismissRequest = { if (!cambiando) onCerrar() },
-        title = { Text("Cambiar contraseña", fontWeight = FontWeight.Bold) },
+        title = { Text("Cambiar contraseña") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -334,7 +269,8 @@ private fun DialogoContrasena(
                     label = { Text("Contraseña actual") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
-                    enabled = !cambiando
+                    enabled = !cambiando,
+                    shape = MaterialTheme.shapes.small
                 )
                 OutlinedTextField(
                     value = nueva,
@@ -343,7 +279,8 @@ private fun DialogoContrasena(
                     supportingText = { Text("Mínimo 6 caracteres") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
-                    enabled = !cambiando
+                    enabled = !cambiando,
+                    shape = MaterialTheme.shapes.small
                 )
                 OutlinedTextField(
                     value = confirmar,
@@ -351,30 +288,26 @@ private fun DialogoContrasena(
                     label = { Text("Confirmar contraseña nueva") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
-                    enabled = !cambiando
+                    enabled = !cambiando,
+                    shape = MaterialTheme.shapes.small
                 )
                 if (error != null) {
-                    Text(text = error, color = Color(0xFFEF4444), fontSize = 13.sp)
+                    Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
                 Text(
-                    text = "Al guardar se cerrará tu sesión y tendrás que iniciarla de nuevo.",
-                    fontSize = 12.sp,
-                    color = Color(0xFF787878)
+                    "Al guardar se cerrará tu sesión y tendrás que iniciarla de nuevo.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { onConfirmar(actual, nueva, confirmar) },
-                enabled = !cambiando
-            ) {
-                Text(if (cambiando) "Guardando…" else "Guardar", color = Color(0xFF1E3A8A), fontWeight = FontWeight.Bold)
+            TextButton(onClick = { onConfirmar(actual, nueva, confirmar) }, enabled = !cambiando) {
+                Text(if (cambiando) "Guardando…" else "Guardar")
             }
         },
         dismissButton = {
-            TextButton(onClick = onCerrar, enabled = !cambiando) {
-                Text("Cancelar")
-            }
+            TextButton(onClick = onCerrar, enabled = !cambiando) { Text("Cancelar") }
         }
     )
 }

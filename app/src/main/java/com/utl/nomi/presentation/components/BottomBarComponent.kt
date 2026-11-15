@@ -15,6 +15,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,10 @@ fun BottomBarComponent(
 
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 0.dp
+            tonalElevation = 0.dp,
+            // El Scaffold de MainActivity ya deja el espacio de la barra del sistema;
+            // sin esto el espacio se sumaba dos veces y la barra se veía muy alta
+            windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
             pestanas.forEach { pestana ->
                 val activa = currentTab == pestana.id
