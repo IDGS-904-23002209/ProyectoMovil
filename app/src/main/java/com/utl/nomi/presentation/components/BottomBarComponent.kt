@@ -1,6 +1,8 @@
 package com.utl.nomi.presentation.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EditCalendar
+import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
@@ -30,18 +32,19 @@ private data class Pestana(
 )
 
 // Barra inferior de Material 3 con icono y nombre en cada pestaña.
-// Los parámetros son los mismos de antes, así que las pantallas no cambian.
-// currentTab: "inicio", "nomina" o "perfil".
+// currentTab: "inicio", "nomina", "solicitudes" o "perfil".
 @Composable
 fun BottomBarComponent(
     currentTab: String,
     onTabInicioClick: () -> Unit,
     onTabNominaClick: () -> Unit,
-    onTabPerfilClick: () -> Unit
+    onTabPerfilClick: () -> Unit,
+    onTabSolicitudesClick: () -> Unit = {}
 ) {
     val pestanas = listOf(
         Pestana("inicio", "Inicio", Icons.Filled.Home, Icons.Outlined.Home, onTabInicioClick),
         Pestana("nomina", "Recibos", Icons.Filled.ReceiptLong, Icons.Outlined.ReceiptLong, onTabNominaClick),
+        Pestana("solicitudes", "Solicitudes", Icons.Filled.EditCalendar, Icons.Outlined.EditCalendar, onTabSolicitudesClick),
         Pestana("perfil", "Perfil", Icons.Filled.Person, Icons.Outlined.Person, onTabPerfilClick),
     )
 

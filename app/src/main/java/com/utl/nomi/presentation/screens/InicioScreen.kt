@@ -43,6 +43,7 @@ fun InicioScreen(
     onNotificacionesClick: () -> Unit = {},
     onTabInicioClick: () -> Unit = {},
     onTabNominaClick: () -> Unit = {},
+    onTabSolicitudesClick: () -> Unit = {},
     onTabPerfilClick: () -> Unit = {},
     viewModel: InicioViewModel = viewModel()
 ) {
@@ -86,6 +87,7 @@ fun InicioScreen(
                 currentTab = "inicio",
                 onTabInicioClick = onTabInicioClick,
                 onTabNominaClick = onTabNominaClick,
+                onTabSolicitudesClick = onTabSolicitudesClick,
                 onTabPerfilClick = onTabPerfilClick
             )
         }

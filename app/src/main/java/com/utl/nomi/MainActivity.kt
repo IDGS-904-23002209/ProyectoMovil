@@ -24,6 +24,7 @@ import com.utl.nomi.presentation.screens.RecibosScreen
 import com.utl.nomi.presentation.screens.NotificacionesScreen
 import com.utl.nomi.presentation.screens.PerfilScreen
 import com.utl.nomi.presentation.screens.RegistroAsistenciaScreen
+import com.utl.nomi.presentation.screens.SolicitudesScreen
 import com.utl.nomi.ui.theme.NomiTheme
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +39,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             NomiTheme {
                 var pantallaActual by remember { mutableStateOf("inicio") }
+                // Pantalla a la que regresa la flecha de Notificaciones
+                var pantallaAnterior by remember { mutableStateOf("inicio") }
                 // Datos que Inicio le pasa al flujo de registro
                 var registroEsSalida by remember { mutableStateOf(false) }
                 var registroSede by remember { mutableStateOf<String?>(null) }
@@ -75,6 +78,7 @@ class MainActivity : ComponentActivity() {
                                             authViewModel.cerrarSesion()
                                         },
                                         onNotificacionesClick = {
+                                            pantallaAnterior = pantallaActual
                                             pantallaActual = "notificaciones"
                                         },
                                         onTabInicioClick = {
@@ -82,6 +86,9 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onTabNominaClick = {
                                             pantallaActual = "nomina"
+                                        },
+                                        onTabSolicitudesClick = {
+                                            pantallaActual = "solicitudes"
                                         },
                                         onTabPerfilClick = {
                                             pantallaActual = "perfil"
@@ -96,12 +103,27 @@ class MainActivity : ComponentActivity() {
                                         onVolver = { pantallaActual = "inicio" }
                                     )
 
+                                    // Notificaciones (sin barra inferior; la flecha regresa a donde estaba)
                                     "notificaciones" -> NotificacionesScreen(
+                                        onVolver = { pantallaActual = pantallaAnterior },
+                                        onAbrirSolicitudes = { pantallaActual = "solicitudes" },
+                                        onAbrirRecibos = { pantallaActual = "nomina" }
+                                    )
+
+                                    // Mis solicitudes de vacaciones y permisos
+                                    "solicitudes" -> SolicitudesScreen(
+                                        onNotificacionesClick = {
+                                            pantallaAnterior = pantallaActual
+                                            pantallaActual = "notificaciones"
+                                        },
                                         onTabInicioClick = {
                                             pantallaActual = "inicio"
                                         },
                                         onTabNominaClick = {
                                             pantallaActual = "nomina"
+                                        },
+                                        onTabSolicitudesClick = {
+                                            pantallaActual = "solicitudes"
                                         },
                                         onTabPerfilClick = {
                                             pantallaActual = "perfil"
@@ -111,6 +133,7 @@ class MainActivity : ComponentActivity() {
                                     // Mis recibos (solo los del usuario con sesión)
                                     "nomina" -> RecibosScreen(
                                         onNotificacionesClick = {
+                                            pantallaAnterior = pantallaActual
                                             pantallaActual = "notificaciones"
                                         },
                                         onTabInicioClick = {
@@ -118,6 +141,9 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onTabNominaClick = {
                                             pantallaActual = "nomina"
+                                        },
+                                        onTabSolicitudesClick = {
+                                            pantallaActual = "solicitudes"
                                         },
                                         onTabPerfilClick = {
                                             pantallaActual = "perfil"
@@ -141,6 +167,7 @@ class MainActivity : ComponentActivity() {
                                             authViewModel.cerrarSesion()
                                         },
                                         onNotificacionesClick = {
+                                            pantallaAnterior = pantallaActual
                                             pantallaActual = "notificaciones"
                                         },
                                         onTabInicioClick = {
@@ -148,6 +175,9 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onTabNominaClick = {
                                             pantallaActual = "nomina"
+                                        },
+                                        onTabSolicitudesClick = {
+                                            pantallaActual = "solicitudes"
                                         },
                                         onTabPerfilClick = {
                                             pantallaActual = "perfil"

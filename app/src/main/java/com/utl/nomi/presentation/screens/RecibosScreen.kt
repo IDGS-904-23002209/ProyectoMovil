@@ -43,6 +43,7 @@ fun RecibosScreen(
     onNotificacionesClick: () -> Unit = {},
     onTabInicioClick: () -> Unit = {},
     onTabNominaClick: () -> Unit = {},
+    onTabSolicitudesClick: () -> Unit = {},
     onTabPerfilClick: () -> Unit = {},
     viewModel: RecibosViewModel = viewModel()
 ) {
@@ -107,6 +108,7 @@ fun RecibosScreen(
                 currentTab = "nomina",
                 onTabInicioClick = onTabInicioClick,
                 onTabNominaClick = onTabNominaClick,
+                onTabSolicitudesClick = onTabSolicitudesClick,
                 onTabPerfilClick = onTabPerfilClick
             )
         }

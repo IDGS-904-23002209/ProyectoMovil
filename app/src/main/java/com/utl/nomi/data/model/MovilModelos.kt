@@ -75,3 +75,58 @@ data class ReciboDetalleMovil(
     val recibo: ReciboMovil,
     val conceptos: List<ConceptoRecibo>
 )
+
+// ---------------- Solicitudes ----------------
+
+// GET api/movil/solicitudes/tipos
+data class TipoPermiso(
+    val id: Int,
+    val nombre: String,
+    val conGoceSueldo: Boolean,
+    val diasMaximos: Int?,
+    val descripcion: String?
+)
+
+// GET api/movil/solicitudes (cada elemento)
+data class SolicitudMovil(
+    val id: Long,
+    val tipo: String,
+    val fechaSolicitud: String,
+    val fechaInicio: String,
+    val fechaFin: String,
+    val dias: Int,
+    val motivo: String?,
+    val estado: String           // PENDIENTE, APROBADA, RECHAZADA o CANCELADA
+)
+
+// POST api/movil/solicitudes. Fechas en formato yyyy-MM-dd.
+data class NuevaSolicitudRequest(
+    val tipoPermisoId: Int,
+    val fechaInicio: String,
+    val fechaFin: String,
+    val motivo: String
+)
+
+// Respuesta de POST api/movil/solicitudes (también la de error)
+data class RespuestaSolicitud(
+    val codigo: Int,
+    val mensaje: String,
+    val id: Long?
+)
+
+// ---------------- Notificaciones ----------------
+
+data class NotificacionMovil(
+    val id: Long,
+    val titulo: String,
+    val mensaje: String,
+    val tipo: String?,           // SOLICITUD, NOMINA, ...
+    val leida: Boolean,
+    val fechaCreacion: String?
+)
+
+// GET api/movil/notificaciones
+data class NotificacionesMovil(
+    val noLeidas: Int,
+    val notificaciones: List<NotificacionMovil>
+)

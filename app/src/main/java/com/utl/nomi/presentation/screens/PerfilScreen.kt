@@ -59,6 +59,7 @@ fun PerfilScreen(
     onNotificacionesClick: () -> Unit = {},
     onTabInicioClick: () -> Unit = {},
     onTabNominaClick: () -> Unit = {},
+    onTabSolicitudesClick: () -> Unit = {},
     onTabPerfilClick: () -> Unit = {}
 ) {
     // Al abrir la pestaña Perfil se piden los datos al servidor
@@ -194,6 +195,7 @@ fun PerfilScreen(
                 currentTab = "perfil",
                 onTabInicioClick = onTabInicioClick,
                 onTabNominaClick = onTabNominaClick,
+                onTabSolicitudesClick = onTabSolicitudesClick,
                 onTabPerfilClick = onTabPerfilClick
             )
         }
