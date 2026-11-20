@@ -39,8 +39,9 @@ object RetrofitClient {
     private val cliente: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor(interceptorToken)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(20, TimeUnit.SECONDS)
+            // somee tarda en "despertar" el sitio: se espera hasta 30 segundos
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
             .build()
     }
 

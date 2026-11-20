@@ -40,11 +40,18 @@ class RegistroAsistenciaViewModel(
 
         viewModelScope.launch {
             try {
-                val ubicacion = LocationHelper(context).getCurrentLocation()
+                val gps = LocationHelper(context)
+                val ubicacion = gps.getCurrentLocation()
                 if (ubicacion == null) {
                     _estado.value = EstadoRegistro.Rechazado(
                         "No se pudo obtener tu ubicación. Activa el GPS e intenta de nuevo."
                     )
+                    return@launch
+                }
+
+                // GPS falso, ubicación vieja o señal débil: no se manda al servidor
+                gps.problemaCon(ubicacion)?.let { problema ->
+                    _estado.value = EstadoRegistro.Rechazado(problema)
                     return@launch
                 }
 

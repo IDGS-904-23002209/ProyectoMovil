@@ -18,8 +18,10 @@ object AuthApi {
         val conexion = URL(ApiConfig.BASE_URL + ruta).openConnection() as HttpURLConnection
         try {
             conexion.requestMethod = metodo
-            conexion.connectTimeout = 10_000
-            conexion.readTimeout = 10_000
+            // somee (hosting gratuito) "duerme" el sitio y la primera petición tarda:
+            // se espera hasta 30 segundos antes de decir que no hay conexión
+            conexion.connectTimeout = 30_000
+            conexion.readTimeout = 30_000
             conexion.setRequestProperty("Content-Type", "application/json")
             conexion.setRequestProperty("Accept", "application/json")
             if (token != null) {
